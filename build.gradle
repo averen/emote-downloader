@@ -23,16 +23,15 @@ plugins {
 }
 
 group "codes.meister"
-version "3.3.0"
+version "3.3.1"
 
 mainClassName = "codes.meister.emotedownloader.core.EmoteDownloader"
 compileJava.options.encoding = "UTF-8"
-sourceCompatibility = 1.9
+sourceCompatibility = 1.8
 
 repositories {
     mavenCentral()
     jcenter()
-    maven { url "https://jitpack.io" }
 }
 
 dependencies {

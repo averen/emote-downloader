@@ -25,10 +25,7 @@ import okhttp3.Request;
 import okhttp3.Response;
 import org.apache.commons.io.FileUtils;
 import org.json.JSONObject;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 
-import javax.security.auth.login.LoginException;
 import javax.swing.*;
 import javax.swing.border.EmptyBorder;
 import java.awt.*;
@@ -36,13 +33,11 @@ import java.awt.event.WindowAdapter;
 import java.awt.event.WindowEvent;
 import java.io.File;
 import java.io.FileOutputStream;
-import java.io.IOException;
 import java.util.List;
 
 public class EmoteDownloader {
 
-	private static final Logger logger = LoggerFactory.getLogger(EmoteDownloader.class);
-	private static final String version = "Emote Downloader 3.3.0";
+	private static final String version = "Emote Downloader 3.3.1";
 	private static final String credits = "github.com/averen";
 	private static final String errorMsg = "\nIf you need any help, contact me on discord @ meister#7070";
 	private static final OkHttpClient ok = new OkHttpClient();
@@ -63,16 +58,11 @@ public class EmoteDownloader {
 			@Override
 			public void windowClosing(WindowEvent event) {
 				try {
-					if (!finished) {
-						if (JOptionPane.showConfirmDialog(null, "Are you sure you want to exit?", version, JOptionPane.YES_NO_OPTION) == JOptionPane.YES_OPTION) {
-							System.exit(0);
-						}
-					} else {
+					if (finished || JOptionPane.showConfirmDialog(null, "Are you sure you want to exit?", version, JOptionPane.YES_NO_OPTION) == JOptionPane.YES_OPTION) {
 						System.exit(0);
 					}
 				} catch (Exception e) {
-					JOptionPane.showMessageDialog(null, e.toString() + errorMsg, version, JOptionPane.ERROR_MESSAGE);
-					System.exit(1);
+					exception(e);
 				}
 			}
 		});
@@ -103,53 +93,48 @@ public class EmoteDownloader {
 		panel.setLayout(layout);
 		window.setVisible(true);
 		progressBar.setIndeterminate(true);
-		// Load our config from disk
-		JSONObject config = null;
+		// I'm a mad lad with this exception handling
 		try {
-			config = new JSONObject(FileUtils.readFileToString(new File("config.json"), "utf-8"));
-		} catch (IOException e) {
-			exception(e);
-		}
-		label.setText("Logging in... (This may take a minute)");
-		// Sign into Discord
-		JDA jda = null;
-		try {
-			jda = new JDABuilder(AccountType.CLIENT)
+			// Load our config from disk
+			JSONObject config = new JSONObject(FileUtils.readFileToString(new File("config.json"), "utf-8"));
+			label.setText("Logging in... (This may take a minute)");
+			// Sign into Discord
+			JDA jda = new JDABuilder(AccountType.CLIENT)
 					.setToken(config.getString("token"))
 					.buildBlocking();
-		} catch (LoginException | InterruptedException | NullPointerException e) {
+			// Copy our emotes from JDA's cache & shutdown our session
+			List<Emote> emotes = jda.getEmotes();
+			jda.shutdown();
+			// Configure the progress bar further
+			progressBar.setIndeterminate(false);
+			progressBar.setStringPainted(true);
+			progressBar.setString("0/0");
+			progressBar.setMaximum(emotes.size());
+			// Create directories and start the download
+			File rootDirectory = new File("emotes/");
+			if (!rootDirectory.exists()) rootDirectory.mkdirs();
+			for (Emote emote : emotes) {
+				label.setText(String.format("%s from %s", emote.getName(), emote.getGuild().getName()));
+				File emoteFile;
+				if (config.optString("mode").equals("ordered")) {
+					String directory = String.format("%s/%s-%s/", rootDirectory.getPath(), stripSpecialCharacters(emote.getGuild().getName()), emote.getGuild().getId());
+					if (!new File(directory).exists()) new File(directory).mkdirs();
+					emoteFile = new File(String.format("%s%s-%s%s", directory, stripSpecialCharacters(emote.getName()), emote.getId(), emote.getImageUrl().substring(emote.getImageUrl().lastIndexOf("."))));
+				} else {
+					emoteFile = new File(String.format("%s%s-%s%s", rootDirectory, stripSpecialCharacters(emote.getName()), emote.getId(), emote.getImageUrl().substring(emote.getImageUrl().lastIndexOf("."))));
+				}
+				if (!emoteFile.exists()) {
+					download(emote.getImageUrl(), emoteFile);
+				}
+				counter++;
+				progressBar.setValue(counter);
+				progressBar.setString(String.format("%d/%d", counter, emotes.size()));
+			}
+			label.setText("Finished!");
+			finished = true;
+		} catch (Exception e) {
 			exception(e);
 		}
-		// Copy our emotes from JDA's cache & shutdown our session
-		List<Emote> emotes = jda.getEmotes();
-		jda.shutdown();
-		// Configure the progress bar further
-		progressBar.setIndeterminate(false);
-		progressBar.setStringPainted(true);
-		progressBar.setString("0/0");
-		progressBar.setMaximum(emotes.size());
-		// Create directories and start the download
-		File rootDirectory = new File("emotes/");
-		if (!rootDirectory.exists()) rootDirectory.mkdirs();
-		for (Emote emote : emotes) {
-			label.setText(String.format("%s from %s", emote.getName(), emote.getGuild().getName()));
-			File emoteFile;
-			if (config.optString("mode").equals("ordered")) {
-				String directory = String.format("%s/%s-%s/", rootDirectory.getPath(), stripSpecialCharacters(emote.getGuild().getName()), emote.getGuild().getId());
-				if (!new File(directory).exists()) new File(directory).mkdirs();
-				emoteFile = new File(String.format("%s%s-%s%s", directory, stripSpecialCharacters(emote.getName()), emote.getId(), emote.getImageUrl().substring(emote.getImageUrl().lastIndexOf("."))));
-			} else {
-				emoteFile = new File(String.format("%s%s-%s%s", rootDirectory, stripSpecialCharacters(emote.getName()), emote.getId(), emote.getImageUrl().substring(emote.getImageUrl().lastIndexOf("."))));
-			}
-			if (!emoteFile.exists()) {
-				download(emote.getImageUrl(), emoteFile);
-			}
-			counter++;
-			progressBar.setValue(counter);
-			progressBar.setString(String.format("%d/%d", counter, emotes.size()));
-		}
-		label.setText("Finished!");
-		finished = true;
 
 	}
 
@@ -169,8 +154,8 @@ public class EmoteDownloader {
 			FileOutputStream fos = new FileOutputStream(destination);
 			fos.write(response.body().bytes());
 			fos.close();
-		} catch (IOException e) {
-			exception(e);
+		} catch (Exception e) {
+			e.printStackTrace();
 		}
 	}
 
