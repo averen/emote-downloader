@@ -5,13 +5,15 @@ All you need is Java installed and your config file, then just double click the 
 
 **NOTE:** This program does not interact with any REST API endpoints, there is no risk for using it.
 
+You can find the latest pre-built JAR in the [releases](https://github.com/averen/emote-downloader/releases) tab.
+
 ### Making your config file
 The config file is expected to be named `config.json` and exist in the same directory as the jar or working directory. Here's a template:
 
 ```
 {
   "token": "Your token here", // The token is your CLIENT discord token. To find it, visit the link below.
-  "mode": "ordered" // OPTIONAL: If the mode is set, the emotes will be organized by the guild they belong to.
+  "mode": "ordered" // If the mode is set, the emotes will be organized by the guild they belong to. You'll probably want this.
 }
 ```
 
