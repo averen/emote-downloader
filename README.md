@@ -1,22 +1,12 @@
 # Emote Downloader
 
-Ever wanted to download all of your cute Discord emotes? I did too, so I made this nifty tool.
-All you need is Java installed and your config file, then just double click the jar.
+This tool quickly and easily downloads all of your Discord emotes for you. All you need is Java installed.
 
-**NOTE:** This program does not interact with any REST API endpoints, there is no risk for using it.
+**WARNING:** Discord is not fond of automated user accounts, read more [here](https://support.discordapp.com/hc/en-us/articles/115002192352-Automated-user-accounts-self-bots-). Also with recent API changes on Discord's end, this application will not function in the near future. With this in mind, I will no longer be providing support for any issues you encounter. **Use at your own risk.**
 
 You can find the latest pre-built JAR in the [releases](https://github.com/averen/emote-downloader/releases) tab.
 
-### Making your config file
-The config file is expected to be named `config.json` and exist in the same directory as the jar or working directory. Here's a template:
+Click [here](https://camo.githubusercontent.com/d3d4ad5526143204a98db268d79eadadf0d03a87/687474703a2f2f692e696d6775722e636f6d2f5569416d4f714d2e706e67) to find your Discord token.
 
-```
-{
-  "token": "Your token here", // The token is your CLIENT discord token. To find it, visit the link below.
-  "mode": "ordered" // If the mode is set, the emotes will be organized by the guild they belong to. You'll probably want this.
-}
-```
-
-Need help getting your token? [This should do the trick](https://camo.githubusercontent.com/d3d4ad5526143204a98db268d79eadadf0d03a87/687474703a2f2f692e696d6775722e636f6d2f5569416d4f714d2e706e67)!
-
-If you need further help, contact me on Discord @ meister#7070
+### Configuration
+This step has been significantly simplified. Instead of creating your own config file, you will instead be prompted for your token when ran for the first time.

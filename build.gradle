@@ -18,14 +18,13 @@ plugins {
     id "java"
     id "idea"
     id "application"
-    id "com.github.johnrengelman.shadow" version "2.0.2"
-    id "de.fuerstenau.buildconfig" version "1.1.8"
+    id "com.github.johnrengelman.shadow" version "2.0.4"
 }
 
 group "codes.meister"
-version "3.3.1"
+version "3.4.0"
 
-mainClassName = "codes.meister.emotedownloader.core.EmoteDownloader"
+mainClassName = "codes.meister.emotedownloader.EmoteDownloader"
 compileJava.options.encoding = "UTF-8"
 sourceCompatibility = 1.8
 
@@ -35,7 +34,11 @@ repositories {
 }
 
 dependencies {
-    compile "net.dv8tion:JDA:3.6.0_354"
+    compile ("net.dv8tion:JDA:3.7.1_390") {
+        exclude module: "opus-java"
+    }
     compile "ch.qos.logback:logback-classic:1.2.3"
     compile "commons-io:commons-io:2.6"
 }
+
+shadowJar { classifier = null }
